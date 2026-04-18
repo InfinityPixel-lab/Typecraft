@@ -2174,8 +2174,11 @@ function placeCaret() {
     }
   }
 
+  // Apply the scroll offset to keep caret synced with display
+  const scrollOffset = parseFloat(display.style.transform.replace('translateY(', '').replace('px)', '')) || 0;
+  
   caret.style.left = left + 'px';
-  caret.style.top  = top + 'px';
+  caret.style.top  = (top + scrollOffset) + 'px';
 }
 
 function scrollToCurrentWord() {
@@ -2185,10 +2188,11 @@ function scrollToCurrentWord() {
 
   // Get the current word's row position
   const wordTop = wordSpans[wordIndex].offsetTop;
+  const containerHeight = container.clientHeight;
   const lineHeight = 38; // approximate line height
   
-  // Scroll so current line is at top, showing the next line below
-  const targetScroll = Math.max(0, wordTop);
+  // Scroll so current line is centered in container
+  const targetScroll = Math.max(0, wordTop - containerHeight/2 + lineHeight/2);
   display.style.transform = `translateY(${-targetScroll}px)`;
 }
 
@@ -2368,8 +2372,8 @@ function handleInput(e) {
     totalErrors++;
   }
 
-  placeCaret();
   scrollToCurrentWord();
+  placeCaret();
 }
 
 function advanceWord() {
@@ -2395,18 +2399,15 @@ function advanceWord() {
   charIndex = 0;
   currentWordErrors = false;
 
+  scrollToCurrentWord();
+  placeCaret();
+
   if (testMode.type === 'words' && wordIndex >= testWords.length) {
     finishTest();
     return;
   }
-
-  placeCaret();
-  scrollToCurrentWord();
 }
 
-// ═══════════════════════════════════════════════════════
-//  TEST LIFECYCLE
-// ═══════════════════════════════════════════════════════
 function restartTest() {
   clearInterval(timerID);
   testActive = false;
