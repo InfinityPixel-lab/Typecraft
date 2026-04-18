@@ -90,6 +90,209 @@
     background: var(--accent-dim);
   }
 
+  /* ═══ NAV AUTH ═══ */
+  .nav-auth {
+    display: flex;
+    align-items: center;
+  }
+  .nav-auth-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .nav-auth-btn {
+    background: rgba(255,215,0,0.15);
+    border: 1px solid rgba(255,215,0,0.4);
+    color: #ffd700;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+  }
+  .nav-auth-btn:hover {
+    background: rgba(255,215,0,0.25);
+    transform: translateY(-1px);
+  }
+  .nav-auth-btn.signed-in {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.15);
+    color: var(--sub);
+  }
+  .nav-auth-btn.signed-in:hover {
+    background: rgba(255,255,255,0.12);
+    color: var(--text);
+  }
+  .nav-auth-promo {
+    font-size: 0.7rem;
+    color: #ffd700;
+    opacity: 0.8;
+  }
+  .nav-user-info {
+    display: flex;
+    align-items: center;
+  }
+
+  /* ═══ AUTH MODAL ═══ */
+  .auth-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .auth-modal {
+    background: var(--bg2);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 14px;
+    padding: 28px 32px;
+    width: min(380px, 90vw);
+    position: relative;
+    animation: modalSlide 0.25s ease;
+  }
+  @keyframes modalSlide {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .auth-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    color: #ffd700;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .auth-modal-sub {
+    font-size: 0.8rem;
+    color: var(--sub);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+  .auth-modal-sub strong {
+    color: #ffd700;
+  }
+  .auth-modal-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .auth-modal-inputs input {
+    padding: 12px 14px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    background: var(--bg3);
+    color: var(--text);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.85rem;
+  }
+  .auth-modal-inputs input:focus {
+    border-color: var(--accent);
+    outline: none;
+  }
+  .auth-modal-inputs input::placeholder {
+    color: var(--sub);
+  }
+  .auth-modal-actions {
+    display: flex;
+    gap: 10px;
+  }
+  .auth-modal-actions .btn-auth {
+    flex: 1;
+    padding: 12px;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .auth-modal-actions .btn-auth:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+  }
+  .auth-modal-actions .btn-guest {
+    flex: 1;
+    padding: 12px;
+    background: rgba(255,255,255,0.08);
+    color: var(--sub);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .auth-modal-actions .btn-guest:hover {
+    background: rgba(255,255,255,0.12);
+    color: var(--text);
+  }
+  .auth-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--sub);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: color 0.2s;
+  }
+  .auth-modal-close:hover {
+    color: var(--text);
+  }
+
+  /* ═══ REWARD POPUP ═══ */
+  .reward-popup {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 250;
+    animation: popupSlide 0.4s ease;
+  }
+  @keyframes popupSlide {
+    from { transform: translateX(-50%) translateY(-30px); opacity: 0; }
+    to { transform: translateX(-50%) translateY(0); opacity: 1; }
+  }
+  .reward-popup-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(0,255,136,0.1));
+    border: 1px solid rgba(255,215,0,0.4);
+    border-radius: 12px;
+    padding: 16px 24px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  }
+  .reward-popup-icon {
+    font-size: 2rem;
+  }
+  .reward-popup-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .reward-popup-text strong {
+    color: #ffd700;
+    font-size: 1rem;
+  }
+  .reward-popup-text span:last-child {
+    color: #4caf84;
+    font-size: 0.85rem;
+  }
+
   /* ── LEVEL BADGE ── */
   .level-badge {
     display: flex;
@@ -231,7 +434,7 @@
   /* ── WORD DISPLAY ── */
   .word-container {
     width: 100%;
-    height: 96px;
+    height: 140px;
     overflow: hidden;
     position: relative;
     margin-bottom: 20px;
@@ -1184,6 +1387,16 @@
     <span class="logo-icon">⌨</span>TypeCraft
   </div>
   <div class="nav-right">
+    <!-- ═══ AUTH BUTTON IN NAV ═══ -->
+    <div id="authSection" class="nav-auth">
+      <div id="authForm" class="nav-auth-form">
+        <button class="nav-auth-btn" onclick="showAuthModal()">🔗 Sign In</button>
+        <span class="nav-auth-promo">10 Gems every 10 levels!</span>
+      </div>
+      <div id="userInfo" class="nav-user-info" style="display: none;">
+        <button class="nav-auth-btn signed-in" onclick="signOut()">Sign Out</button>
+      </div>
+    </div>
     <button class="nav-btn active" id="nav-type" onclick="showView('type')">type</button>
     <button class="nav-btn" id="nav-stats" onclick="showView('stats')">stats</button>
     <div class="level-badge" onclick="showView('stats')" title="View stats">
@@ -1194,43 +1407,35 @@
   </div>
 </nav>
 
-<!-- ═══ AUTH SECTION ═══ -->
-<div class="auth-section" id="authSection">
-  <div id="authForm" class="auth-form">
-    <div class="auth-header">
+<!-- ═══ AUTH MODAL ═══ -->
+<div id="authModal" class="auth-modal-overlay" style="display: none;" onclick="hideAuthModal(event)">
+  <div class="auth-modal" onclick="event.stopPropagation()">
+    <div class="auth-modal-header">
       <span class="auth-icon">🔗</span>
-      <span>Link to FallingStar TCG for <strong>10 Gems</strong> every 10 levels!</span>
+      <span>Link to FallingStar TCG</span>
     </div>
-    <p class="auth-sub">Use the same email/password as your FallingStar account</p>
-    <div class="auth-inputs">
+    <p class="auth-modal-sub">Sign in with the same email to get <strong>10 Gems</strong> every 10 levels!</p>
+    <div class="auth-modal-inputs">
       <input type="email" id="emailInput" placeholder="Email">
       <input type="password" id="passwordInput" placeholder="Password (6+ chars)">
+    </div>
+    <div class="auth-modal-actions">
       <button class="btn-auth" onclick="signIn()">Sign In / Create</button>
-      <button class="btn-guest" onclick="playAsGuest()">Guest</button>
+      <button class="btn-guest" onclick="playAsGuest()">Play as Guest</button>
     </div>
     <div id="authMessage"></div>
-  </div>
-  <div id="userInfo" class="user-info" style="display: none;">
-    <span class="user-email" id="userEmail"></span>
-    <button class="btn-signout" onclick="signOut()">Sign Out</button>
+    <button class="auth-modal-close" onclick="hideAuthModal()">✕</button>
   </div>
 </div>
 
-<!-- ═══ REWARDS SECTION ═══ -->
-<div class="rewards-section" id="rewardsSection" style="display: none;">
-  <div class="reward-header">
-    <span>🎁</span>
-    <span>FallingStar TCG Rewards</span>
-  </div>
-  <div id="rewardContent" class="reward-content">
-    <p>Reach every 10th level to earn 10 Gems!</p>
-  </div>
-  <div class="code-history" id="codeHistory" style="display: none;">
-    <h4>Your Reward Codes</h4>
-    <div class="code-list" id="codeList"></div>
-  </div>
-  <div class="auto-redeem-info" id="autoRedeemInfo" style="display: none;">
-    ✅ <strong>Auto-Redeem Active!</strong> Gems automatically added to FallingStar TCG with same login.
+<!-- ═══ REWARD POPUP ═══ -->
+<div id="rewardPopup" class="reward-popup" style="display: none;">
+  <div class="reward-popup-content">
+    <span class="reward-popup-icon">🎉</span>
+    <div class="reward-popup-text">
+      <strong>Level <span id="popupLevel"></span> Reached!</strong>
+      <span id="popupRewardText">10 Gems added to FallingStar TCG!</span>
+    </div>
   </div>
 </div>
 
@@ -1578,18 +1783,14 @@ function showAuthMessage(msg, type) {
 auth.onAuthStateChanged(async (user) => {
   currentUser = user;
   if (user) {
+    // Hide auth modal if open
+    hideAuthModal();
+    // Update nav UI: show Sign Out button, hide promo text
     document.getElementById('authForm').style.display = 'none';
     document.getElementById('userInfo').style.display = 'flex';
-    document.getElementById('userEmail').textContent = user.email || 'Guest';
-    document.getElementById('rewardsSection').style.display = 'block';
-
-    if (user.email) {
-      document.getElementById('autoRedeemInfo').style.display = 'block';
-    }
 
     await loadUserData(user.uid);
     setupTypecraftCodesListener(user.uid);
-    updateRewardDisplay();
   }
 });
 
@@ -1719,6 +1920,7 @@ async function autoRedeemCode(code, level) {
         autoRedeemed: true
       });
 
+      showRewardPopup(level, 10);
       showNotif('💎 Auto-Redeemed!', `10 gems added to FallingStarTCG`);
     }
   } catch (error) {
@@ -1727,34 +1929,8 @@ async function autoRedeemCode(code, level) {
 }
 
 function updateRewardDisplay() {
-  const nextMilestone = Math.ceil(state.level / 10) * 10;
-  const levelsNeeded = nextMilestone - state.level;
-  const rewardContent = document.getElementById('rewardContent');
-
-  // Check if current level is a milestone and not claimed
-  const isMilestone = state.level % 10 === 0;
-  const isClaimed = state.claimedRewards && state.claimedRewards.includes(state.level);
-
-  if (isMilestone && !isClaimed && currentUser) {
-    rewardContent.innerHTML = `
-      <div class="reward-active" style="padding:16px;border-radius:10px;">
-        <strong>🎉 Reward Available at Level ${state.level}!</strong>
-        <p style="margin-top:8px;color:var(--sub);">Complete a test to claim your 10 Gems</p>
-      </div>
-    `;
-  } else if (isMilestone && isClaimed) {
-    rewardContent.innerHTML = `
-      <div style="padding:16px;">
-        <strong style="color:#4caf84;">✓ Level ${state.level} Reward Claimed!</strong>
-        <p style="margin-top:8px;color:var(--sub);">10 Gems added to FallingStar TCG</p>
-      </div>
-    `;
-  } else {
-    rewardContent.innerHTML = `
-      <p>🎯 Reach Level ${nextMilestone} for 10 Gems!</p>
-      <p style="font-size:0.8rem;color:var(--sub);margin-top:6px;">${levelsNeeded} level${levelsNeeded !== 1 ? 's' : ''} to go</p>
-    `;
-  }
+  // No longer used - rewards now show as popups when earned
+  // This function is kept for backwards compatibility
 }
 
 function updateCodeHistory(codes) {
@@ -2006,14 +2182,13 @@ function scrollToCurrentWord() {
   if (!wordSpans[wordIndex]) return;
   const display = document.getElementById('words-display');
   const container = document.getElementById('word-container');
-  const wordRect = wordSpans[wordIndex].getBoundingClientRect();
-  const contRect = container.getBoundingClientRect();
 
-  // We want the current word's row to be in the middle of the container
+  // Get the current word's row position
   const wordTop = wordSpans[wordIndex].offsetTop;
-  // Figure out which row we're on by tracking word tops
-  const lineHeight = 38; // approx
-  const targetScroll = Math.max(0, wordTop - lineHeight);
+  const lineHeight = 38; // approximate line height
+  
+  // Scroll so current line is at top, showing the next line below
+  const targetScroll = Math.max(0, wordTop);
   display.style.transform = `translateY(${-targetScroll}px)`;
 }
 
