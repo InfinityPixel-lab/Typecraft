@@ -1779,6 +1779,16 @@ function showAuthMessage(msg, type) {
   setTimeout(() => div.className = '', 3000);
 }
 
+// Auth modal functions
+function showAuthModal() {
+  document.getElementById('authModal').style.display = 'flex';
+}
+
+function hideAuthModal(event) {
+  if (event && event.target !== event.currentTarget) return;
+  document.getElementById('authModal').style.display = 'none';
+}
+
 // Auth state listener
 auth.onAuthStateChanged(async (user) => {
   currentUser = user;
