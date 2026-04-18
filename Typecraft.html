@@ -1,0 +1,2767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TypeCraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Lexend+Deca:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<style>
+  :root {
+    --bg: #323437;
+    --bg2: #2c2e31;
+    --bg3: #1e2022;
+    --accent: #e2b714;
+    --accent-dim: rgba(226, 183, 20, 0.15);
+    --accent-glow: rgba(226, 183, 20, 0.4);
+    --text: #d1d0c5;
+    --sub: #646669;
+    --error: #ca4754;
+    --error-bg: rgba(202, 71, 84, 0.25);
+    --correct: #d1d0c5;
+    --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Roboto Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: --accent var(--transition);
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 40px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+  }
+
+  .logo {
+    font-family: 'Lexend Deca', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.03em;
+    cursor: pointer;
+    transition: opacity var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo:hover { opacity: 0.8; }
+  .logo-icon { font-size: 1.2rem; }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .nav-btn {
+    background: none;
+    border: none;
+    color: var(--sub);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all var(--transition);
+    letter-spacing: 0.02em;
+  }
+  .nav-btn:hover, .nav-btn.active {
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  /* ── LEVEL BADGE ── */
+  .level-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .level-num {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .level-label { color: var(--sub); }
+  .xp-mini {
+    width: 60px;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .xp-mini-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* ── MAIN ── */
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 48px 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* ── VIEWS ── */
+  .view { display: none; width: 100%; }
+  .view.active { display: flex; flex-direction: column; align-items: center; }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg2);
+    border-radius: 10px;
+    padding: 8px;
+    margin-bottom: 36px;
+    position: relative;
+  }
+
+  .toolbar-sep {
+    width: 1px;
+    height: 20px;
+    background: rgba(255,255,255,0.08);
+    margin: 0 4px;
+  }
+
+  .tool-btn {
+    background: none;
+    border: none;
+    color: var(--sub);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.78rem;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all var(--transition);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .tool-btn:hover { color: var(--text); }
+  .tool-btn.active {
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .tool-btn.locked {
+    opacity: 0.35;
+    cursor: not-allowed;
+    position: relative;
+  }
+  .lock-icon { font-size: 0.65rem; }
+
+  /* ── UNLOCK TOOLTIP ── */
+  .tool-btn.locked::after {
+    content: attr(data-unlock);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg3);
+    color: var(--sub);
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .tool-btn.locked:hover::after { opacity: 1; }
+
+  /* ── TIMER / WPM DISPLAY ── */
+  .live-stats {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    margin-bottom: 24px;
+    min-height: 52px;
+    align-self: flex-start;
+  }
+  .live-stat-val {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    min-width: 60px;
+    transition: color var(--transition);
+  }
+  .live-stat-label {
+    font-size: 0.7rem;
+    color: var(--sub);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ── WORD DISPLAY ── */
+  .word-container {
+    width: 100%;
+    height: 96px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 20px;
+  }
+  .word-container::before,
+  .word-container::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    height: 24px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .word-container::before { top: 0; background: linear-gradient(to bottom, var(--bg), transparent); }
+  .word-container::after { bottom: 0; background: linear-gradient(to top, var(--bg), transparent); }
+
+  .words {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 1.5rem;
+    line-height: 1;
+    transition: transform 0.2s ease;
+    padding: 2px;
+  }
+
+  .word {
+    display: inline-flex;
+    position: relative;
+  }
+
+  .char {
+    color: var(--sub);
+    transition: color 0.05s;
+    position: relative;
+  }
+  .char.correct { color: var(--text); }
+  .char.incorrect {
+    color: var(--error);
+    text-decoration-line: underline;
+    text-decoration-style: wavy;
+    text-decoration-color: var(--error);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+  .char.extra {
+    color: var(--error);
+    opacity: 0.7;
+  }
+
+  .word.error-word {
+    background: var(--error-bg);
+    border-radius: 3px;
+    padding: 1px 3px;
+    margin: -1px -3px;
+  }
+
+  /* Caret */
+  .caret {
+    position: absolute;
+    width: 2px;
+    height: 1.5rem;
+    background: var(--accent);
+    border-radius: 1px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: left 0.07s, top 0.1s;
+    animation: blink 1.2s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 5;
+  }
+  @keyframes blink {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  .caret.typing { animation: none; opacity: 1; }
+
+  /* ── INPUT ── */
+  .input-area {
+    width: 100%;
+    position: relative;
+  }
+  #typing-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+  .input-blocker {
+    width: 100%;
+    height: 4px;
+    cursor: text;
+  }
+
+  /* ── RESTART BTN ── */
+  .restart-btn {
+    background: none;
+    border: 2px solid rgba(255,255,255,0.06);
+    color: var(--sub);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 10px 24px;
+    border-radius: 8px;
+    transition: all var(--transition);
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.05em;
+  }
+  .restart-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  /* ── RESULT OVERLAY ── */
+  #result-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+  }
+  #result-overlay.show { display: flex; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .result-card {
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 48px;
+    width: min(700px, 90vw);
+    animation: slideUp 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
+  }
+  .result-title {
+    font-family: 'Lexend Deca', sans-serif;
+    font-size: 1.1rem;
+    color: var(--sub);
+    font-weight: 300;
+    letter-spacing: 0.05em;
+  }
+
+  .result-big {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  .result-stat {
+    text-align: center;
+  }
+  .result-val {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    display: block;
+  }
+  .result-lbl {
+    font-size: 0.7rem;
+    color: var(--sub);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-top: 6px;
+    display: block;
+  }
+
+  .result-detail {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    background: var(--bg3);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 28px;
+  }
+  .detail-item { text-align: center; }
+  .detail-val {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    display: block;
+  }
+  .detail-lbl {
+    font-size: 0.65rem;
+    color: var(--sub);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 4px;
+    display: block;
+  }
+
+  /* XP Gain animation */
+  .xp-gain-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    background: var(--bg3);
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+  .xp-gain-label {
+    font-size: 0.8rem;
+    color: var(--sub);
+    white-space: nowrap;
+    min-width: 80px;
+  }
+  .xp-bar-track {
+    flex: 1;
+    height: 8px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .xp-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 4px;
+    transition: width 1s cubic-bezier(0.4,0,0.2,1);
+    width: 0%;
+  }
+  .xp-gain-text {
+    font-size: 0.85rem;
+    color: var(--accent);
+    font-weight: 600;
+    white-space: nowrap;
+    min-width: 70px;
+    text-align: right;
+  }
+
+  .level-up-badge {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--accent), rgba(226,183,20,0.5));
+    color: var(--bg);
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 8px 16px;
+    border-radius: 20px;
+    animation: pulse 0.6s ease;
+    margin-bottom: 12px;
+    width: fit-content;
+  }
+  .level-up-badge.show { display: flex; }
+  @keyframes pulse {
+    0% { transform: scale(0.8); opacity: 0; }
+    70% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .result-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 12px 28px;
+    border-radius: 8px;
+    transition: all var(--transition);
+    letter-spacing: 0.03em;
+  }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-secondary {
+    background: var(--bg3);
+    color: var(--sub);
+    border: 1px solid rgba(255,255,255,0.06);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 12px 28px;
+    border-radius: 8px;
+    transition: all var(--transition);
+  }
+  .btn-secondary:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+
+  /* ── WORD DIFFICULTY TIER ── */
+  .tier-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 16px;
+    align-self: flex-start;
+  }
+  .tier-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .tier-label {
+    font-size: 0.7rem;
+    color: var(--sub);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .tier-name {
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── STATS VIEW ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    width: 100%;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 14px;
+    padding: 20px;
+    transition: border-color var(--transition);
+  }
+  .stat-card:hover { border-color: rgba(255,255,255,0.12); }
+  .stat-card-val {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    display: block;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-card-lbl {
+    font-size: 0.65rem;
+    color: var(--sub);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .chart-card {
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 14px;
+    padding: 24px;
+  }
+  .chart-title {
+    font-size: 0.75rem;
+    color: var(--sub);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chart-title-accent { color: var(--accent); }
+  canvas { max-height: 160px; }
+
+  /* Level progress card */
+  .level-card {
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 14px;
+    padding: 28px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .level-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .level-card-title {
+    font-size: 0.75rem;
+    color: var(--sub);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .level-big {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .level-tier-name {
+    font-size: 0.8rem;
+    color: var(--sub);
+    margin-top: 4px;
+  }
+  .xp-track {
+    height: 10px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .xp-track-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--accent), rgba(226,183,20,0.7));
+    border-radius: 5px;
+    transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+  }
+  .xp-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--sub);
+  }
+
+  /* Unlocks grid */
+  .unlocks-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .unlock-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: var(--bg3);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.04);
+    transition: all var(--transition);
+  }
+  .unlock-item.unlocked { border-color: var(--accent-dim); }
+  .unlock-icon {
+    font-size: 1.2rem;
+    width: 32px;
+    text-align: center;
+  }
+  .unlock-info { flex: 1; }
+  .unlock-name {
+    font-size: 0.75rem;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .unlock-req {
+    font-size: 0.65rem;
+    color: var(--sub);
+    margin-top: 2px;
+  }
+  .unlock-badge {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .unlock-badge.locked-badge {
+    background: rgba(255,255,255,0.04);
+    color: var(--sub);
+  }
+
+  /* Char heatmap */
+  .heatmap-card {
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 14px;
+    padding: 24px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .heatmap-row {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 5px;
+    justify-content: center;
+  }
+  .heatmap-key {
+    width: 34px;
+    height: 34px;
+    border-radius: 5px;
+    background: var(--bg3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: default;
+    transition: all var(--transition);
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .heatmap-key:hover::after {
+    content: attr(data-errors) ' errors';
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg3);
+    color: var(--text);
+    font-size: 0.65rem;
+    padding: 3px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+    border: 1px solid rgba(255,255,255,0.08);
+    z-index: 10;
+  }
+
+  /* Personal records */
+  .records-card {
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 14px;
+    padding: 24px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .records-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .record-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--bg3);
+    border-radius: 8px;
+  }
+  .record-mode { font-size: 0.75rem; color: var(--sub); }
+  .record-wpm { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+  .record-acc { font-size: 0.7rem; color: var(--sub); margin-top: 2px; }
+  .record-date { font-size: 0.65rem; color: var(--sub); text-align: right; }
+
+  /* Stats page title */
+  .stats-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 28px;
+  }
+  .stats-page-title {
+    font-family: 'Lexend Deca', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .stats-clear-btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.06);
+    color: var(--sub);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: all var(--transition);
+  }
+  .stats-clear-btn:hover { color: var(--error); border-color: var(--error); }
+
+  .section-title {
+    font-size: 0.7rem;
+    color: var(--sub);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 60px 0;
+    color: var(--sub);
+  }
+  .empty-icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.4; }
+  .empty-text { font-size: 0.9rem; }
+
+  /* ── NOTIFICATIONS ── */
+  #notif {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
+  .notif-item {
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 0.8rem;
+    color: var(--text);
+    animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+    max-width: 260px;
+    pointer-events: none;
+  }
+  .notif-title { color: var(--accent); font-weight: 700; margin-bottom: 2px; }
+  @keyframes slideInRight {
+    from { transform: translateX(40px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes fadeOut {
+    to { opacity: 0; transform: translateX(10px); }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    main { padding: 24px 20px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-row { grid-template-columns: 1fr; }
+    .unlocks-grid { grid-template-columns: 1fr 1fr; }
+    .result-big { grid-template-columns: 1fr 1fr; }
+    .result-detail { grid-template-columns: repeat(2, 1fr); }
+    .words { font-size: 1.2rem; }
+    .records-list { grid-template-columns: 1fr; }
+  }
+
+  /* ── AUTH SECTION ── */
+  .auth-section {
+    max-width: 1100px;
+    margin: 20px auto;
+    padding: 0 40px;
+    width: 100%;
+  }
+  .auth-form {
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 24px 28px;
+    text-align: center;
+  }
+  .auth-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .auth-header strong { color: var(--accent); }
+  .auth-icon { font-size: 1.2rem; }
+  .auth-sub {
+    font-size: 0.75rem;
+    color: var(--sub);
+    margin-bottom: 16px;
+  }
+  .auth-inputs {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .auth-inputs input {
+    padding: 10px 14px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    background: var(--bg3);
+    color: var(--text);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.85rem;
+    min-width: 180px;
+  }
+  .auth-inputs input::placeholder { color: var(--sub); }
+  .auth-inputs input:focus {
+    border-color: var(--accent);
+    outline: none;
+  }
+  .btn-auth, .btn-guest, .btn-signout {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all var(--transition);
+    font-weight: 600;
+  }
+  .btn-auth {
+    background: var(--accent);
+    color: var(--bg);
+  }
+  .btn-auth:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-guest {
+    background: rgba(255,255,255,0.08);
+    color: var(--sub);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .btn-guest:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+  .user-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    background: var(--bg2);
+    border: 1px solid rgba(0,255,136,0.2);
+    border-radius: 14px;
+    padding: 16px 24px;
+  }
+  .user-email {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .btn-signout {
+    background: rgba(255,255,255,0.08);
+    color: var(--sub);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 8px 14px;
+    font-size: 0.75rem;
+  }
+  .btn-signout:hover { color: var(--error); border-color: var(--error); }
+  .auth-message {
+    margin-top: 12px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+  }
+  .auth-message.error {
+    background: var(--error-bg);
+    color: var(--error);
+    border: 1px solid var(--error);
+  }
+  .auth-message.success {
+    background: rgba(0,255,136,0.1);
+    color: #4caf84;
+    border: 1px solid rgba(0,255,136,0.3);
+  }
+
+  /* ── REWARDS SECTION ── */
+  .rewards-section {
+    max-width: 1100px;
+    margin: 0 auto 20px;
+    padding: 0 40px;
+    width: 100%;
+  }
+  .reward-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffd700;
+    margin-bottom: 12px;
+  }
+  .reward-content {
+    background: var(--bg2);
+    border: 1px solid rgba(255,215,0,0.2);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .reward-content p { color: var(--sub); font-size: 0.9rem; }
+  .reward-active {
+    background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05));
+    border-color: rgba(255,215,0,0.4);
+    animation: glow 2s ease-in-out infinite;
+  }
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.1); }
+    50% { box-shadow: 0 0 30px rgba(255,215,0,0.25); }
+  }
+  .code-display {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 1.6rem;
+    color: #ffd700;
+    background: var(--bg3);
+    padding: 12px 24px;
+    border-radius: 8px;
+    letter-spacing: 3px;
+    margin: 12px 0;
+    display: inline-block;
+  }
+  .code-history {
+    margin-top: 20px;
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .code-history h4 {
+    font-size: 0.75rem;
+    color: var(--sub);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+  }
+  .code-list {
+    display: grid;
+    gap: 8px;
+  }
+  .code-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--bg3);
+    border-radius: 8px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.85rem;
+  }
+  .code-item .level { color: var(--accent); font-weight: 600; }
+  .code-item .code { color: #00ccff; }
+  .code-item .status {
+    font-size: 0.7rem;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+  }
+  .code-item .status.pending {
+    background: rgba(255,215,0,0.15);
+    color: #ffd700;
+  }
+  .code-item .status.claimed {
+    background: rgba(0,255,136,0.15);
+    color: #4caf84;
+  }
+  .code-item .status.auto {
+    background: rgba(0,204,255,0.15);
+    color: #00ccff;
+  }
+  .auto-redeem-info {
+    margin-top: 16px;
+    padding: 14px 18px;
+    background: rgba(0,255,136,0.1);
+    border: 1px solid rgba(0,255,136,0.25);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: #4caf84;
+  }
+  .gem-count {
+    font-size: 1.3rem;
+    color: #ffd700;
+    font-weight: 700;
+    margin: 8px 0;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+  /* ── FOCUSED INDICATOR ── */
+  .focus-warning {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(50,52,55,0.85);
+    backdrop-filter: blur(4px);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--sub);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 10;
+  }
+  .word-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 4px;
+  }
+  .word-wrapper.blurred .focus-warning { opacity: 1; }
+
+  /* Consistency bar */
+  .consistency-bar-wrap {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .consistency-label { font-size: 0.7rem; color: var(--sub); white-space: nowrap; }
+  .consistency-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .consistency-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(to right, var(--error), var(--accent), #4caf50);
+    background-size: 200px 100%;
+    transition: clip-path 0.5s ease;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" onclick="showView('type')">
+    <span class="logo-icon">⌨</span>TypeCraft
+  </div>
+  <div class="nav-right">
+    <button class="nav-btn active" id="nav-type" onclick="showView('type')">type</button>
+    <button class="nav-btn" id="nav-stats" onclick="showView('stats')">stats</button>
+    <div class="level-badge" onclick="showView('stats')" title="View stats">
+      <span class="level-label">lv</span>
+      <span class="level-num" id="nav-level">1</span>
+      <div class="xp-mini"><div class="xp-mini-fill" id="nav-xp-fill"></div></div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ AUTH SECTION ═══ -->
+<div class="auth-section" id="authSection">
+  <div id="authForm" class="auth-form">
+    <div class="auth-header">
+      <span class="auth-icon">🔗</span>
+      <span>Link to CCG Code for <strong>10 Gems</strong> every 10 levels!</span>
+    </div>
+    <p class="auth-sub">Use the same email/password as your CCG Code account</p>
+    <div class="auth-inputs">
+      <input type="email" id="emailInput" placeholder="Email">
+      <input type="password" id="passwordInput" placeholder="Password (6+ chars)">
+      <button class="btn-auth" onclick="signIn()">Sign In / Create</button>
+      <button class="btn-guest" onclick="playAsGuest()">Guest</button>
+    </div>
+    <div id="authMessage"></div>
+  </div>
+  <div id="userInfo" class="user-info" style="display: none;">
+    <span class="user-email" id="userEmail"></span>
+    <button class="btn-signout" onclick="signOut()">Sign Out</button>
+  </div>
+</div>
+
+<!-- ═══ REWARDS SECTION ═══ -->
+<div class="rewards-section" id="rewardsSection" style="display: none;">
+  <div class="reward-header">
+    <span>🎁</span>
+    <span>CCG Code Rewards</span>
+  </div>
+  <div id="rewardContent" class="reward-content">
+    <p>Reach every 10th level to earn 10 Gems!</p>
+  </div>
+  <div class="code-history" id="codeHistory" style="display: none;">
+    <h4>Your Reward Codes</h4>
+    <div class="code-list" id="codeList"></div>
+  </div>
+  <div class="auto-redeem-info" id="autoRedeemInfo" style="display: none;">
+    ✅ <strong>Auto-Redeem Active!</strong> Gems automatically added to CCG Code with same login.
+  </div>
+</div>
+
+<main>
+  <!-- ═══ TYPE VIEW ═══ -->
+  <div class="view active" id="view-type">
+    <div class="toolbar">
+      <!-- Word modes -->
+      <button class="tool-btn" id="tool-punct" onclick="toggleSpecial('punctuation')" title="Punctuation">
+        <span>@</span> punctuation
+      </button>
+      <button class="tool-btn locked" id="tool-nums" onclick="toggleSpecial('numbers')" data-unlock="Unlock at Level 10">
+        <span class="lock-icon">🔒</span> numbers
+      </button>
+      <button class="tool-btn locked" id="tool-quote" onclick="toggleSpecial('quotes')" data-unlock="Unlock at Level 20">
+        <span class="lock-icon">🔒</span> quotes
+      </button>
+      <div class="toolbar-sep"></div>
+      <!-- Time modes -->
+      <button class="tool-btn active" id="tool-t15" onclick="setMode('time',15)">15</button>
+      <button class="tool-btn" id="tool-t30" onclick="setMode('time',30)">30</button>
+      <button class="tool-btn" id="tool-t60" onclick="setMode('time',60)">60</button>
+      <div class="toolbar-sep"></div>
+      <!-- Word count modes -->
+      <button class="tool-btn" id="tool-w25" onclick="setMode('words',25)">25</button>
+      <button class="tool-btn" id="tool-w50" onclick="setMode('words',50)">50</button>
+    </div>
+
+    <div class="live-stats">
+      <div>
+        <div class="live-stat-val" id="live-primary">15</div>
+        <div class="live-stat-label" id="live-primary-lbl">seconds</div>
+      </div>
+      <div style="opacity:0" id="live-wpm-wrap">
+        <div class="live-stat-val" id="live-wpm">0</div>
+        <div class="live-stat-label">wpm</div>
+      </div>
+    </div>
+
+    <div class="tier-indicator">
+      <div class="tier-dot"></div>
+      <span class="tier-label">word tier:</span>
+      <span class="tier-name" id="tier-name">novice</span>
+    </div>
+
+    <div class="word-wrapper" id="word-wrapper">
+      <div class="word-container" id="word-container">
+        <div class="words" id="words-display"></div>
+        <div class="caret" id="caret" style="left:0;top:0"></div>
+      </div>
+      <div class="focus-warning" id="focus-warning">
+        click here to focus
+      </div>
+    </div>
+
+    <div class="input-area" onclick="focusInput()">
+      <input type="text" id="typing-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <div class="input-blocker"></div>
+    </div>
+
+    <button class="restart-btn" onclick="restartTest()">
+      <span>↺</span> restart
+      <span style="font-size:0.65rem;margin-left:4px;opacity:0.5">[tab]</span>
+    </button>
+  </div>
+
+  <!-- ═══ STATS VIEW ═══ -->
+  <div class="view" id="view-stats">
+    <div class="stats-page-header">
+      <div class="stats-page-title">Your Statistics</div>
+      <button class="stats-clear-btn" onclick="clearStats()">reset stats</button>
+    </div>
+
+    <!-- Level Card -->
+    <div class="section-title">🎮 progression</div>
+    <div class="level-card">
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:32px;align-items:start">
+        <div>
+          <div class="level-big" id="stat-level">1</div>
+          <div class="level-tier-name" id="stat-tier-name">Novice</div>
+        </div>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <span style="font-size:0.75rem;color:var(--sub)" id="xp-label">0 / 100 XP</span>
+            <span style="font-size:0.75rem;color:var(--accent)" id="xp-pct">0%</span>
+          </div>
+          <div class="xp-track"><div class="xp-track-fill" id="stat-xp-fill"></div></div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px">
+            <span style="font-size:0.65rem;color:var(--sub)">Level <span id="xp-curr-level">1</span></span>
+            <span style="font-size:0.65rem;color:var(--sub)">Level <span id="xp-next-level">2</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:24px">🔓 unlockables</div>
+      <div class="unlocks-grid" id="unlocks-grid">
+        <!-- filled by JS -->
+      </div>
+    </div>
+
+    <!-- Overview stats -->
+    <div class="section-title">📊 overview</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-card-val" id="s-bestwpm">—</span>
+        <span class="stat-card-lbl">best wpm</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card-val" id="s-avgwpm">—</span>
+        <span class="stat-card-lbl">avg wpm</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card-val" id="s-avgacc">—</span>
+        <span class="stat-card-lbl">avg accuracy</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card-val" id="s-tests">0</span>
+        <span class="stat-card-lbl">tests taken</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card-val" id="s-time">0m</span>
+        <span class="stat-card-lbl">time typing</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card-val" id="s-chars">0</span>
+        <span class="stat-card-lbl">chars typed</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card-val" id="s-streak">0</span>
+        <span class="stat-card-lbl">best streak</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card-val" id="s-consistency">—</span>
+        <span class="stat-card-lbl">consistency</span>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="section-title">📈 performance</div>
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">WPM <span class="chart-title-accent">history</span></div>
+        <canvas id="chart-wpm"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Accuracy <span class="chart-title-accent">history</span></div>
+        <canvas id="chart-acc"></canvas>
+      </div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">WPM <span class="chart-title-accent">distribution</span></div>
+        <canvas id="chart-dist"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">XP <span class="chart-title-accent">earned per test</span></div>
+        <canvas id="chart-xp"></canvas>
+      </div>
+    </div>
+
+    <!-- Keyboard Heatmap -->
+    <div class="section-title">⌨️ error heatmap</div>
+    <div class="heatmap-card">
+      <div style="font-size:0.75rem;color:var(--sub);margin-bottom:16px">
+        Darker = more errors on that key. Based on all your tests.
+      </div>
+      <div id="keyboard-heatmap"></div>
+    </div>
+
+    <!-- Personal records -->
+    <div class="section-title">🏆 personal records</div>
+    <div class="records-card">
+      <div class="records-list" id="records-list"></div>
+    </div>
+
+    <!-- Recent tests -->
+    <div class="section-title">🕐 recent tests</div>
+    <div class="records-card">
+      <div id="recent-tests"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ═══ RESULT OVERLAY ═══ -->
+<div id="result-overlay">
+  <div class="result-card">
+    <div class="result-header">
+      <div class="result-title">test complete</div>
+      <div class="level-up-badge" id="level-up-badge">⚡ LEVEL UP!</div>
+    </div>
+    <div class="result-big">
+      <div class="result-stat">
+        <span class="result-val" id="r-wpm">0</span>
+        <span class="result-lbl">wpm</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-val" id="r-acc">0%</span>
+        <span class="result-lbl">accuracy</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-val" id="r-raw">0</span>
+        <span class="result-lbl">raw wpm</span>
+      </div>
+    </div>
+    <div class="result-detail">
+      <div class="detail-item">
+        <span class="detail-val" id="r-chars">0</span>
+        <span class="detail-lbl">chars</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-val" id="r-errors">0</span>
+        <span class="detail-lbl">errors</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-val" id="r-consistency">0%</span>
+        <span class="detail-lbl">consistency</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-val" id="r-time">0s</span>
+        <span class="detail-lbl">time</span>
+      </div>
+    </div>
+    <div class="xp-gain-bar">
+      <div class="xp-gain-label" id="xp-gain-mode">+XP</div>
+      <div class="xp-bar-track"><div class="xp-bar-fill" id="xp-bar-fill"></div></div>
+      <div class="xp-gain-text" id="xp-gain-text">+0 xp</div>
+    </div>
+    <div class="result-actions">
+      <button class="btn-secondary" onclick="showView('stats')">view stats</button>
+      <button class="btn-primary" onclick="closeResult()">next test</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notifications -->
+<div id="notif"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  WORD POOLS (tiered by difficulty)
+// ═══════════════════════════════════════════════════════
+const WORD_POOLS = {
+  novice: `the be to of and a in that have it for not on with he as you do at this his by from they we say her she or an will my one all would there their what so up out if about who get which go me when make can like time no just him know take people into year your good some could them see other than then now look only come its over think also back after use two how our work first well way even new want because any these give day most us`.split(' '),
+
+  apprentice: `about above across after again against along always among another around because before being below beside between beyond building certain change children clearly close coming computer country course create either enough enter every example factor family follow found given going going group happen having help herself himself however hundred important including inside itself large later later learn light living making matter might million morning mother nearly never next night nothing number often once order other outside perhaps place planet point possible power provide public reason result right simply since social small space start still thing those thought through together toward under until value voice water whether whole without wonder world write young`.split(' '),
+
+  journeyman: `ability absolute academic accomplish achieve acknowledge additional administration advantage afternoon agriculture already alternative although analysis ancient announce apparent appreciate approximately argument arrangement beautiful birthday breathe certainly character children community complete condition consider construction continue contribution conversation corporation create definitely demonstrate development different difficult direction discussion distance education effective efficient electricity eliminate environment establish everything examine excellent explain expression extraordinary favorite following friendship generally government grateful guarantee happiness historical immediately importance industry information intelligence interested introduce language maintain management marriage material mathematics meanwhile measurement memory military neighborhood newspaper objective observation operation opportunity ordinary organize patient performance personal population possible president previous primary probably process produce program question recognize relationship remember represent research responsibility responsible schedule significant situation society something sometimes standard statement structure student subject successful sufficient support surface surprise technology therefore thousand together together tradition travel tremendous typical understand unfortunately university usually various whatever whenever wherever whether without wonderful`.split(' '),
+
+  expert: `absolutely accomplishment acknowledgment administration advertisement approximately architectural assassination authorization bibliography catastrophically circumstantial colloquialism commemorative commissioned comprehensively consciousness constitutional counterproductive crystallization demonstrably deterioration differentiation disambiguation disproportionate electromagnetic encyclopedia establishment extraordinary fascination foundations geographical hallucination humanitarian hyperventilation illuminating implementation incomprehensible indistinguishable infrastructure instantaneously interdisciplinary interpretation investigation juxtaposition knowledgeable manifestation mathematical Mediterranean metamorphosis misrepresentation nevertheless nonetheless opportunity organizational overwhelming parliamentary perpendicular perspective pharmaceutical philosophical photographer predestination prioritization pronunciation proportional psychological qualification quintessential rationalization recommendation reconciliation refrigerator representative responsibility revolutionary simultaneously sophisticated straightforward sustainability telecommunications thermodynamic transformation transportation unconditionally understanding unnecessarily unprecedented vulnerability`.split(' ')
+};
+
+const PUNCTUATION = [',', '.', '!', '?', ';', ':'];
+const NUMBERS = ['0','1','2','3','4','5','6','7','8','9'];
+const QUOTES = [
+  "the quick brown fox jumps over the lazy dog",
+  "to be or not to be that is the question",
+  "all that glitters is not gold",
+  "the only way to do great work is to love what you do",
+  "in the middle of every difficulty lies opportunity",
+  "it always seems impossible until it is done",
+  "success is not final failure is not fatal it is the courage to continue that counts",
+  "life is what happens when you are busy making other plans",
+  "the future belongs to those who believe in the beauty of their dreams",
+  "it is during our darkest moments that we must focus to see the light"
+];
+
+// ═══════════════════════════════════════════════════════
+//  FIREBASE CONFIG (Same as CCG Code)
+// ═══════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyAYk_xbV7ZDNAOZuKxc_OF3I14MO-ENsB4",
+  authDomain: "ccg-game-cd803.firebaseapp.com",
+  projectId: "ccg-game-cd803",
+  storageBucket: "ccg-game-cd803.firebasestorage.app",
+  messagingSenderId: "844503779699",
+  appId: "1:844503779699:web:e6ee8ef8d5e76a83855d06",
+  measurementId: "G-0LHW1MJ354"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// Firebase Auth State
+let currentUser = null;
+let userTypecraftDoc = null;
+
+// ═══════════════════════════════════════════════════════
+//  AUTH FUNCTIONS
+// ═══════════════════════════════════════════════════════
+async function signIn() {
+  const email = document.getElementById('emailInput').value.trim();
+  const password = document.getElementById('passwordInput').value;
+
+  if (!email || !password) {
+    showAuthMessage('Please enter email and password', 'error');
+    return;
+  }
+  if (password.length < 6) {
+    showAuthMessage('Password must be at least 6 characters', 'error');
+    return;
+  }
+
+  try {
+    try {
+      await auth.signInWithEmailAndPassword(email, password);
+      showAuthMessage('Signed in successfully!', 'success');
+    } catch (signInError) {
+      if (signInError.code === 'auth/user-not-found') {
+        await auth.createUserWithEmailAndPassword(email, password);
+        showAuthMessage('Account created!', 'success');
+      } else {
+        throw signInError;
+      }
+    }
+  } catch (error) {
+    showAuthMessage(error.message, 'error');
+  }
+}
+
+async function playAsGuest() {
+  try {
+    await auth.signInAnonymously();
+    showAuthMessage('Playing as guest', 'success');
+  } catch (error) {
+    showAuthMessage(error.message, 'error');
+  }
+}
+
+async function signOut() {
+  await auth.signOut();
+  location.reload();
+}
+
+function showAuthMessage(msg, type) {
+  const div = document.getElementById('authMessage');
+  div.className = 'auth-message ' + type;
+  div.textContent = msg;
+  setTimeout(() => div.className = '', 3000);
+}
+
+// Auth state listener
+auth.onAuthStateChanged(async (user) => {
+  currentUser = user;
+  if (user) {
+    document.getElementById('authForm').style.display = 'none';
+    document.getElementById('userInfo').style.display = 'flex';
+    document.getElementById('userEmail').textContent = user.email || 'Guest';
+    document.getElementById('rewardsSection').style.display = 'block';
+
+    if (user.email) {
+      document.getElementById('autoRedeemInfo').style.display = 'block';
+    }
+
+    await loadUserData(user.uid);
+    setupTypecraftCodesListener(user.uid);
+    updateRewardDisplay();
+  }
+});
+
+// Load user data from Firestore (sync with localStorage)
+async function loadUserData(uid) {
+  userTypecraftDoc = db.collection('typecraft_users').doc(uid);
+  const doc = await userTypecraftDoc.get();
+
+  if (doc.exists) {
+    const data = doc.data();
+    // Merge with local state if Firestore has newer data
+    if (data.level > state.level || (data.level === state.level && data.xp > state.xp)) {
+      state.level = data.level || state.level;
+      state.xp = data.xp || state.xp;
+      state.claimedRewards = data.claimedRewards || [];
+      saveState();
+      applyTheme(state.level);
+      updateNavLevel();
+    }
+  } else {
+    // First time - save local state to Firestore
+    await saveUserData();
+  }
+}
+
+async function saveUserData() {
+  if (!userTypecraftDoc) return;
+  await userTypecraftDoc.set({
+    level: state.level,
+    xp: state.xp,
+    claimedRewards: state.claimedRewards || [],
+    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+}
+
+// Listen for typecraft_codes updates
+function setupTypecraftCodesListener(uid) {
+  db.collection('typecraft_codes')
+    .where('typecraftUid', '==', uid)
+    .onSnapshot((snapshot) => {
+      const codes = [];
+      snapshot.forEach((doc) => {
+        codes.push({ id: doc.id, ...doc.data() });
+      });
+      updateCodeHistory(codes);
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+//  REWARD CODE SYSTEM
+// ═══════════════════════════════════════════════════════
+async function generateRewardCode(level) {
+  if (!currentUser) return;
+
+  // Check if already claimed
+  if (state.claimedRewards && state.claimedRewards.includes(level)) {
+    return;
+  }
+
+  // Generate unique code
+  const code = generateUniqueCode();
+  const codeData = {
+    code: code,
+    typecraftUid: currentUser.uid,
+    typecraftEmail: currentUser.email || null,
+    level: level,
+    gems: 10,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    status: currentUser.email ? 'auto_pending' : 'pending',
+    redeemed: false,
+    redeemedAt: null,
+    redeemedBy: null,
+    autoRedeemed: false
+  };
+
+  // Save to Firestore
+  await db.collection('typecraft_codes').doc(code).set(codeData);
+
+  // Mark as claimed locally
+  if (!state.claimedRewards) state.claimedRewards = [];
+  state.claimedRewards.push(level);
+  saveState();
+  saveUserData();
+
+  // Auto-redeem if user has email
+  if (currentUser.email) {
+    await autoRedeemCode(code, level);
+  }
+
+  return code;
+}
+
+function generateUniqueCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = 'TC';
+  for (let i = 0; i < 8; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
+
+async function autoRedeemCode(code, level) {
+  try {
+    // Find CCG Code user with same email
+    const usersQuery = await db.collection('users')
+      .where('email', '==', currentUser.email)
+      .limit(1)
+      .get();
+
+    if (!usersQuery.empty) {
+      const ccgUser = usersQuery.docs[0];
+      const ccgUserId = ccgUser.id;
+      const ccgData = ccgUser.data();
+
+      // Add gems to CCG Code user
+      const currentGems = ccgData.gems || 0;
+      await db.collection('users').doc(ccgUserId).update({
+        gems: Math.min(currentGems + 10, 999999)
+      });
+
+      // Update code status
+      await db.collection('typecraft_codes').doc(code).update({
+        status: 'auto_redeemed',
+        redeemed: true,
+        redeemedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        redeemedBy: ccgUserId,
+        autoRedeemed: true
+      });
+
+      showNotif('💎 Auto-Redeemed!', `10 gems added to CCG Code`);
+    }
+  } catch (error) {
+    console.error('Auto-redeem error:', error);
+  }
+}
+
+function updateRewardDisplay() {
+  const nextMilestone = Math.ceil(state.level / 10) * 10;
+  const levelsNeeded = nextMilestone - state.level;
+  const rewardContent = document.getElementById('rewardContent');
+
+  // Check if current level is a milestone and not claimed
+  const isMilestone = state.level % 10 === 0;
+  const isClaimed = state.claimedRewards && state.claimedRewards.includes(state.level);
+
+  if (isMilestone && !isClaimed && currentUser) {
+    rewardContent.innerHTML = `
+      <div class="reward-active" style="padding:16px;border-radius:10px;">
+        <strong>🎉 Reward Available at Level ${state.level}!</strong>
+        <p style="margin-top:8px;color:var(--sub);">Complete a test to claim your 10 Gems</p>
+      </div>
+    `;
+  } else if (isMilestone && isClaimed) {
+    rewardContent.innerHTML = `
+      <div style="padding:16px;">
+        <strong style="color:#4caf84;">✓ Level ${state.level} Reward Claimed!</strong>
+        <p style="margin-top:8px;color:var(--sub);">10 Gems added to CCG Code</p>
+      </div>
+    `;
+  } else {
+    rewardContent.innerHTML = `
+      <p>🎯 Reach Level ${nextMilestone} for 10 Gems!</p>
+      <p style="font-size:0.8rem;color:var(--sub);margin-top:6px;">${levelsNeeded} level${levelsNeeded !== 1 ? 's' : ''} to go</p>
+    `;
+  }
+}
+
+function updateCodeHistory(codes) {
+  if (codes.length === 0) {
+    document.getElementById('codeHistory').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('codeHistory').style.display = 'block';
+  const list = document.getElementById('codeList');
+  list.innerHTML = '';
+
+  // Sort by level descending
+  codes.sort((a, b) => b.level - a.level);
+
+  codes.forEach((codeData) => {
+    const item = document.createElement('div');
+    item.className = 'code-item';
+    let statusClass, statusText;
+    if (codeData.autoRedeemed) {
+      statusClass = 'auto';
+      statusText = 'Auto ✓';
+    } else if (codeData.redeemed) {
+      statusClass = 'claimed';
+      statusText = 'Claimed';
+    } else {
+      statusClass = 'pending';
+      statusText = 'Pending';
+    }
+    item.innerHTML = `
+      <span class="level">Lv.${codeData.level}</span>
+      <span class="code">${codeData.code}</span>
+      <span class="status ${statusClass}">${statusText}</span>
+    `;
+    list.appendChild(item);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  LEVEL SYSTEM
+// ═══════════════════════════════════════════════════════
+const LEVEL_THEMES = [
+  { min: 1,  color: '#e2b714', name: 'Novice',      tier: 'novice',      icon: '🌱' },
+  { min: 5,  color: '#e2b714', name: 'Apprentice',  tier: 'apprentice',  icon: '📚' },
+  { min: 10, color: '#4caf84', name: 'Journeyman',  tier: 'journeyman',  icon: '⚡' },
+  { min: 20, color: '#5b9cf6', name: 'Skilled',     tier: 'journeyman',  icon: '🔵' },
+  { min: 30, color: '#a78bfa', name: 'Expert',      tier: 'expert',      icon: '💜' },
+  { min: 50, color: '#f87171', name: 'Master',      tier: 'expert',      icon: '🔥' },
+  { min: 75, color: '#f472b6', name: 'Grandmaster', tier: 'expert',      icon: '👑' },
+];
+
+const UNLOCKABLES = [
+  { id: 'punct',   name: 'Punctuation Mode', req: 1,  icon: '✏️',  desc: 'Add punctuation to words' },
+  { id: 'nums',    name: 'Numbers Mode',     req: 10, icon: '🔢',  desc: 'Mix in number tokens' },
+  { id: 'quotes',  name: 'Quotes Mode',      req: 20, icon: '💬',  desc: 'Type famous quotes' },
+  { id: 'hard60',  name: 'Hard 60s',         req: 15, icon: '⏱️',  desc: 'Expert words + 60s timer' },
+  { id: 'theme2',  name: 'Scholar Theme',    req: 10, icon: '🟢',  desc: 'Green accent color' },
+  { id: 'theme3',  name: 'Voyager Theme',    req: 20, icon: '🔵',  desc: 'Blue accent color' },
+  { id: 'theme4',  name: 'Mystic Theme',     req: 30, icon: '💜',  desc: 'Purple accent color' },
+  { id: 'theme5',  name: 'Phoenix Theme',    req: 50, icon: '🔴',  desc: 'Red accent color' },
+  { id: 'theme6',  name: 'Elite Theme',      req: 75, icon: '💗',  desc: 'Pink accent color' },
+];
+
+function xpForLevel(lvl) {
+  return Math.floor(100 * Math.pow(lvl, 1.75));
+}
+
+function getLevelTheme(lvl) {
+  let theme = LEVEL_THEMES[0];
+  for (const t of LEVEL_THEMES) { if (lvl >= t.min) theme = t; }
+  return theme;
+}
+
+function getWordTierForLevel(lvl) {
+  if (lvl >= 30) return 'expert';
+  if (lvl >= 16) return 'journeyman';
+  if (lvl >= 6)  return 'apprentice';
+  return 'novice';
+}
+
+// ═══════════════════════════════════════════════════════
+//  STATE & PERSISTENCE
+// ═══════════════════════════════════════════════════════
+let state = {
+  level: 1,
+  xp: 0,
+  results: [],
+  charErrors: {},
+  records: {},
+  currentStreak: 0,
+  bestStreak: 0,
+  totalTime: 0,
+  totalChars: 0,
+  specialModes: { punctuation: false, numbers: false, quotes: false }
+};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('typecraft_v2');
+    if (saved) Object.assign(state, JSON.parse(saved));
+  } catch(e) {}
+}
+
+function saveState() {
+  try { localStorage.setItem('typecraft_v2', JSON.stringify(state)); } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════
+//  TEST STATE
+// ═══════════════════════════════════════════════════════
+let testMode   = { type: 'time', value: 15 };
+let testWords  = [];
+let wordSpans  = [];
+let charSpans  = [];
+let wordIndex  = 0;
+let charIndex  = 0;
+let startTime  = null;
+let timerID    = null;
+let testActive = false;
+let testDone   = false;
+let wpmSamples = [];
+let totalTyped = 0;
+let totalErrors= 0;
+let errorChars = {};
+let currentWordErrors = false;
+let caretBlink = null;
+let isFocused  = false;
+
+// ═══════════════════════════════════════════════════════
+//  APPLY THEME
+// ═══════════════════════════════════════════════════════
+function applyTheme(lvl) {
+  const theme = getLevelTheme(lvl);
+  document.documentElement.style.setProperty('--accent', theme.color);
+  document.documentElement.style.setProperty('--accent-dim', hexToRgba(theme.color, 0.15));
+  document.documentElement.style.setProperty('--accent-glow', hexToRgba(theme.color, 0.4));
+}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  WORD GENERATION
+// ═══════════════════════════════════════════════════════
+function generateWords(count) {
+  if (state.specialModes.quotes) {
+    const q = QUOTES[Math.floor(Math.random()*QUOTES.length)];
+    return q.split(' ').slice(0, count);
+  }
+  const tier = getWordTierForLevel(state.level);
+  let pool = [...WORD_POOLS[tier]];
+  const words = [];
+  for (let i = 0; i < count; i++) {
+    let w = pool[Math.floor(Math.random()*pool.length)];
+    if (state.specialModes.numbers && Math.random() < 0.15) {
+      w = Math.floor(Math.random()*1000).toString();
+    }
+    if (state.specialModes.punctuation && Math.random() < 0.3 && i > 0) {
+      words[words.length-1] += PUNCTUATION[Math.floor(Math.random()*PUNCTUATION.length)];
+    }
+    words.push(w);
+  }
+  return words;
+}
+
+// ═══════════════════════════════════════════════════════
+//  BUILD DISPLAY
+// ═══════════════════════════════════════════════════════
+function buildDisplay() {
+  const display = document.getElementById('words-display');
+  display.innerHTML = '';
+  charSpans = [];
+  wordSpans = [];
+
+  testWords.forEach((word, wi) => {
+    const wordEl = document.createElement('div');
+    wordEl.className = 'word';
+    wordEl.dataset.index = wi;
+    const chars = [];
+    for (const ch of word) {
+      const span = document.createElement('span');
+      span.className = 'char';
+      span.textContent = ch;
+      wordEl.appendChild(span);
+      chars.push(span);
+    }
+    charSpans.push(chars);
+    wordSpans.push(wordEl);
+    display.appendChild(wordEl);
+  });
+
+  wordIndex = 0;
+  charIndex = 0;
+  placeCaret();
+  scrollToCurrentWord();
+}
+
+function placeCaret() {
+  const caret = document.getElementById('caret');
+  const container = document.getElementById('word-container');
+  const display = document.getElementById('words-display');
+
+  if (wordIndex >= wordSpans.length) { caret.style.opacity = '0'; return; }
+  caret.style.opacity = '1';
+
+  const word = wordSpans[wordIndex];
+  const chars = charSpans[wordIndex];
+  let ref;
+
+  if (charIndex < chars.length) {
+    ref = chars[charIndex];
+  } else {
+    // after last char - use extra spans or end of word
+    const extras = word.querySelectorAll('.char.extra');
+    ref = extras.length ? extras[extras.length-1] : chars[chars.length-1];
+  }
+
+  const rWord = word.getBoundingClientRect();
+  const rDisp = display.getBoundingClientRect();
+  const rCont = container.getBoundingClientRect();
+
+  let left, top;
+  if (charIndex < chars.length) {
+    const r = ref.getBoundingClientRect();
+    left = r.left - rDisp.left - 1;
+    top  = r.top  - rDisp.top;
+  } else {
+    const extras = word.querySelectorAll('.char.extra');
+    if (extras.length) {
+      const r = extras[extras.length-1].getBoundingClientRect();
+      left = r.right - rDisp.left;
+      top  = r.top   - rDisp.top;
+    } else {
+      const r = chars[chars.length-1].getBoundingClientRect();
+      left = r.right - rDisp.left;
+      top  = r.top   - rDisp.top;
+    }
+  }
+
+  caret.style.left = left + 'px';
+  caret.style.top  = top + 'px';
+}
+
+function scrollToCurrentWord() {
+  if (!wordSpans[wordIndex]) return;
+  const display = document.getElementById('words-display');
+  const container = document.getElementById('word-container');
+  const wordRect = wordSpans[wordIndex].getBoundingClientRect();
+  const contRect = container.getBoundingClientRect();
+
+  // We want the current word's row to be in the middle of the container
+  const wordTop = wordSpans[wordIndex].offsetTop;
+  // Figure out which row we're on by tracking word tops
+  const lineHeight = 38; // approx
+  const targetScroll = Math.max(0, wordTop - lineHeight);
+  display.style.transform = `translateY(${-targetScroll}px)`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  TIMER & WPM
+// ═══════════════════════════════════════════════════════
+function startTimer() {
+  startTime = Date.now();
+  testActive = true;
+  wpmSamples = [];
+
+  if (testMode.type === 'time') {
+    let remaining = testMode.value;
+    document.getElementById('live-primary').textContent = remaining;
+    document.getElementById('live-primary-lbl').textContent = 'seconds';
+
+    timerID = setInterval(() => {
+      remaining--;
+      const elapsed = (Date.now() - startTime) / 60000;
+      const wpm = Math.round((totalTyped / 5) / elapsed);
+      document.getElementById('live-primary').textContent = remaining;
+      document.getElementById('live-wpm').textContent = isFinite(wpm) ? wpm : 0;
+      document.getElementById('live-wpm-wrap').style.opacity = '1';
+      wpmSamples.push(isFinite(wpm) ? wpm : 0);
+      if (remaining <= 0) finishTest();
+    }, 1000);
+  } else {
+    document.getElementById('live-primary').textContent = '0';
+    document.getElementById('live-primary-lbl').textContent = 'seconds';
+    timerID = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTime)/1000);
+      const eMin = (Date.now() - startTime) / 60000;
+      const wpm = Math.round((totalTyped / 5) / eMin);
+      document.getElementById('live-primary').textContent = elapsed;
+      document.getElementById('live-wpm').textContent = isFinite(wpm) ? wpm : 0;
+      document.getElementById('live-wpm-wrap').style.opacity = '1';
+      wpmSamples.push(isFinite(wpm) ? wpm : 0);
+    }, 1000);
+  }
+}
+
+function computeWPM(elapsed) {
+  return Math.round((totalTyped / 5) / (elapsed / 60000));
+}
+function computeRaw(elapsed) {
+  // raw = all keystrokes / 5 / min
+  const raw = Math.round(((totalTyped + totalErrors*0.5) / 5) / (elapsed / 60000));
+  return isFinite(raw) ? raw : 0;
+}
+function computeConsistency() {
+  if (wpmSamples.length < 2) return 100;
+  const mean = wpmSamples.reduce((a,b)=>a+b,0)/wpmSamples.length;
+  const variance = wpmSamples.reduce((a,b)=>a+(b-mean)**2,0)/wpmSamples.length;
+  const sd = Math.sqrt(variance);
+  const cv = mean > 0 ? sd/mean : 1;
+  return Math.max(0, Math.round(100 - cv*100));
+}
+
+// ═══════════════════════════════════════════════════════
+//  INPUT HANDLING
+// ═══════════════════════════════════════════════════════
+function focusInput() {
+  document.getElementById('typing-input').focus();
+}
+
+document.getElementById('typing-input').addEventListener('focus', () => {
+  isFocused = true;
+  document.getElementById('word-wrapper').classList.remove('blurred');
+  document.getElementById('focus-warning').style.opacity = '0';
+  document.getElementById('caret').classList.add('typing');
+});
+
+document.getElementById('typing-input').addEventListener('blur', () => {
+  isFocused = false;
+  if (!testDone) {
+    document.getElementById('word-wrapper').classList.add('blurred');
+    document.getElementById('focus-warning').style.opacity = '1';
+  }
+  document.getElementById('caret').classList.remove('typing');
+});
+
+document.getElementById('word-wrapper').addEventListener('click', () => focusInput());
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    restartTest();
+  }
+  if (e.key === 'Escape') {
+    document.getElementById('result-overlay').classList.remove('show');
+  }
+});
+
+document.getElementById('typing-input').addEventListener('input', handleInput);
+document.getElementById('typing-input').addEventListener('keydown', handleKeydown);
+
+function handleKeydown(e) {
+  if (e.key === 'Backspace') {
+    if (charIndex > 0) {
+      // Remove extra chars
+      const word = wordSpans[wordIndex];
+      const extras = word.querySelectorAll('.char.extra');
+      if (extras.length > 0) {
+        extras[extras.length-1].remove();
+        charSpans[wordIndex].pop();
+        charIndex--;
+      } else if (charIndex <= charSpans[wordIndex].length) {
+        charIndex--;
+        charSpans[wordIndex][charIndex].className = 'char';
+      }
+    } else if (wordIndex > 0 && charIndex === 0) {
+      // Go back to previous word if it had errors
+      const prevWord = wordSpans[wordIndex-1];
+      if (prevWord.classList.contains('error-word')) {
+        wordIndex--;
+        // Remove extras on prev word
+        while (true) {
+          const extras = prevWord.querySelectorAll('.char.extra');
+          if (!extras.length) break;
+          extras[extras.length-1].remove();
+          charSpans[wordIndex].pop();
+        }
+        charIndex = charSpans[wordIndex].length;
+        // Reset chars to correct state for re-typing
+      }
+    }
+    placeCaret();
+    e.preventDefault();
+    return;
+  }
+}
+
+function handleInput(e) {
+  const input = document.getElementById('typing-input');
+  const val = input.value;
+
+  if (!val) return;
+
+  if (!testActive && !testDone) startTimer();
+  if (testDone) { input.value = ''; return; }
+
+  const char = val[val.length - 1];
+  input.value = '';
+
+  if (char === ' ') {
+    advanceWord();
+    return;
+  }
+
+  // Type a character
+  const word = testWords[wordIndex];
+  const chars = charSpans[wordIndex];
+
+  if (charIndex < word.length) {
+    const correct = char === word[charIndex];
+    chars[charIndex].className = 'char ' + (correct ? 'correct' : 'incorrect');
+    if (!correct) {
+      totalErrors++;
+      currentWordErrors = true;
+      if (!errorChars[char]) errorChars[char] = 0;
+      errorChars[char]++;
+      if (!state.charErrors[word[charIndex]]) state.charErrors[word[charIndex]] = 0;
+      state.charErrors[word[charIndex]]++;
+    } else {
+      totalTyped++;
+    }
+    charIndex++;
+  } else {
+    // Extra char
+    const span = document.createElement('span');
+    span.className = 'char extra';
+    span.textContent = char;
+    wordSpans[wordIndex].appendChild(span);
+    charSpans[wordIndex].push(span);
+    charIndex++;
+    currentWordErrors = true;
+    totalErrors++;
+  }
+
+  placeCaret();
+  scrollToCurrentWord();
+}
+
+function advanceWord() {
+  if (wordIndex >= testWords.length) return;
+
+  const chars = charSpans[wordIndex];
+  const word = testWords[wordIndex];
+
+  // Mark incomplete chars as incorrect
+  for (let i = charIndex; i < chars.length; i++) {
+    if (chars[i].className === 'char') {
+      chars[i].className = 'char incorrect';
+      currentWordErrors = true;
+      totalErrors++;
+    }
+  }
+
+  if (currentWordErrors || charIndex < word.length) {
+    wordSpans[wordIndex].classList.add('error-word');
+  }
+
+  wordIndex++;
+  charIndex = 0;
+  currentWordErrors = false;
+
+  if (testMode.type === 'words' && wordIndex >= testWords.length) {
+    finishTest();
+    return;
+  }
+
+  placeCaret();
+  scrollToCurrentWord();
+}
+
+// ═══════════════════════════════════════════════════════
+//  TEST LIFECYCLE
+// ═══════════════════════════════════════════════════════
+function restartTest() {
+  clearInterval(timerID);
+  testActive = false;
+  testDone = false;
+  startTime = null;
+  wordIndex = 0;
+  charIndex = 0;
+  totalTyped = 0;
+  totalErrors = 0;
+  errorChars = {};
+  currentWordErrors = false;
+  wpmSamples = [];
+  document.getElementById('live-wpm-wrap').style.opacity = '0';
+  document.getElementById('result-overlay').classList.remove('show');
+
+  const count = testMode.type === 'time'
+    ? Math.ceil(testMode.value * 3.5)
+    : testMode.value;
+  testWords = generateWords(count + 20);
+
+  if (testMode.type === 'time') {
+    document.getElementById('live-primary').textContent = testMode.value;
+    document.getElementById('live-primary-lbl').textContent = 'seconds';
+  } else {
+    document.getElementById('live-primary').textContent = '0';
+    document.getElementById('live-primary-lbl').textContent = 'words';
+  }
+
+  buildDisplay();
+  updateTierDisplay();
+  focusInput();
+}
+
+function finishTest() {
+  clearInterval(timerID);
+  testActive = false;
+  testDone = true;
+  document.getElementById('caret').style.opacity = '0';
+
+  const elapsed = Date.now() - startTime;
+  const wpm = Math.max(0, computeWPM(elapsed));
+  const raw = computeRaw(elapsed);
+  const totalCharsTyped = totalTyped + totalErrors;
+  const acc = totalCharsTyped > 0
+    ? Math.round((totalTyped / totalCharsTyped) * 100)
+    : 100;
+  const consistency = computeConsistency();
+
+  // XP calculation
+  const accuracyBonus = acc / 100;
+  const timeBonus = testMode.type === 'time' ? (testMode.value / 60) * 1.5 : 1;
+  const levelBonus = 1 + state.level * 0.02;
+  const xpGained = Math.max(5, Math.round(wpm * accuracyBonus * timeBonus * levelBonus));
+
+  const oldLevel = state.level;
+  state.xp += xpGained;
+  while (state.xp >= xpForLevel(state.level)) {
+    state.xp -= xpForLevel(state.level);
+    state.level++;
+  }
+  const didLevelUp = state.level > oldLevel;
+  if (didLevelUp) applyTheme(state.level);
+
+  // Update streak
+  if (acc >= 90) {
+    state.currentStreak++;
+    state.bestStreak = Math.max(state.bestStreak, state.currentStreak);
+  } else {
+    state.currentStreak = 0;
+  }
+
+  // Save result
+  const modeKey = `${testMode.type}_${testMode.value}`;
+  const result = {
+    wpm, raw, acc, consistency, chars: totalCharsTyped,
+    errors: totalErrors, time: elapsed, mode: modeKey,
+    date: Date.now(), xpGained, level: state.level,
+    tier: getWordTierForLevel(state.level)
+  };
+  state.results.push(result);
+  state.totalTime = (state.totalTime || 0) + elapsed;
+  state.totalChars = (state.totalChars || 0) + totalCharsTyped;
+
+  // Personal records
+  if (!state.records[modeKey] || wpm > state.records[modeKey].wpm) {
+    state.records[modeKey] = result;
+    if (state.results.length > 1) showNotif('🏆 New Record!', `${wpm} WPM on ${modeKey.replace('_',' ')}s`);
+  }
+
+  saveState();
+
+  // Generate reward codes for any milestone levels reached
+  if (didLevelUp && currentUser) {
+    for (let lvl = oldLevel + 1; lvl <= state.level; lvl++) {
+      if (lvl % 10 === 0) {
+        generateRewardCode(lvl);
+      }
+    }
+    saveUserData();
+    updateRewardDisplay();
+  }
+
+  showResult(result, xpGained, oldLevel, didLevelUp);
+  updateNavLevel();
+}
+
+// ═══════════════════════════════════════════════════════
+//  RESULT DISPLAY
+// ═══════════════════════════════════════════════════════
+function showResult(r, xpGained, oldLevel, didLevelUp) {
+  document.getElementById('r-wpm').textContent = r.wpm;
+  document.getElementById('r-acc').textContent = r.acc + '%';
+  document.getElementById('r-raw').textContent = r.raw;
+  document.getElementById('r-chars').textContent = `${r.chars}/${r.errors}`;
+  document.getElementById('r-errors').textContent = r.errors;
+  document.getElementById('r-consistency').textContent = r.consistency + '%';
+  document.getElementById('r-time').textContent = (r.time/1000).toFixed(1) + 's';
+
+  // XP bar
+  const xpNeeded = xpForLevel(oldLevel);
+  const xpBefore = state.xp - (didLevelUp ? 0 : xpGained);
+  const pctBefore = Math.min(100, (xpBefore / xpNeeded) * 100);
+  const pctAfter = Math.min(100, (state.xp / xpForLevel(state.level)) * 100);
+
+  document.getElementById('xp-bar-fill').style.width = pctBefore + '%';
+  document.getElementById('xp-gain-text').textContent = `+${xpGained} xp`;
+  document.getElementById('xp-gain-mode').textContent = `Lv ${state.level}`;
+
+  setTimeout(() => {
+    document.getElementById('xp-bar-fill').style.width = pctAfter + '%';
+  }, 400);
+
+  // Level up badge
+  const badge = document.getElementById('level-up-badge');
+  if (didLevelUp) {
+    badge.textContent = `⚡ LEVEL ${state.level}!`;
+    badge.classList.add('show');
+    showNotif('⚡ Level Up!', `You reached Level ${state.level} — ${getLevelTheme(state.level).name}`);
+    checkNewUnlocks(state.level);
+  } else {
+    badge.classList.remove('show');
+  }
+
+  document.getElementById('result-overlay').classList.add('show');
+}
+
+function checkNewUnlocks(lvl) {
+  const justUnlocked = UNLOCKABLES.filter(u => u.req === lvl);
+  justUnlocked.forEach(u => {
+    setTimeout(() => showNotif('🔓 Unlocked!', u.name), 1000);
+  });
+}
+
+function closeResult() {
+  document.getElementById('result-overlay').classList.remove('show');
+  restartTest();
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODE CONTROLS
+// ═══════════════════════════════════════════════════════
+function setMode(type, value) {
+  testMode = { type, value };
+  document.querySelectorAll('.tool-btn').forEach(b => {
+    const id = b.id;
+    b.classList.toggle('active',
+      (id === `tool-t${value}` && type === 'time') ||
+      (id === `tool-w${value}` && type === 'words')
+    );
+  });
+  restartTest();
+}
+
+function toggleSpecial(mode) {
+  if (mode === 'numbers' && state.level < 10) return;
+  if (mode === 'quotes' && state.level < 20) return;
+  state.specialModes[mode] = !state.specialModes[mode];
+  document.getElementById('tool-' + mode.slice(0,5)).classList.toggle('active', state.specialModes[mode]);
+  restartTest();
+}
+
+function updateUnlockButtons() {
+  const lvl = state.level;
+  const numsBtn = document.getElementById('tool-nums');
+  const quoteBtn = document.getElementById('tool-quote');
+
+  if (lvl >= 10) {
+    numsBtn.classList.remove('locked');
+    numsBtn.querySelector('.lock-icon') && (numsBtn.innerHTML = '<span>🔢</span> numbers');
+  }
+  if (lvl >= 20) {
+    quoteBtn.classList.remove('locked');
+    quoteBtn.querySelector('.lock-icon') && (quoteBtn.innerHTML = '<span>💬</span> quotes');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  VIEWS
+// ═══════════════════════════════════════════════════════
+function showView(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + view)?.classList.add('active');
+
+  if (view === 'stats') renderStats();
+  if (view === 'type') { focusInput(); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  STATS RENDERING
+// ═══════════════════════════════════════════════════════
+let charts = {};
+
+function renderStats() {
+  const results = state.results;
+  updateNavLevel();
+
+  // Level card
+  document.getElementById('stat-level').textContent = state.level;
+  const theme = getLevelTheme(state.level);
+  document.getElementById('stat-tier-name').textContent = theme.name;
+  document.getElementById('xp-curr-level').textContent = state.level;
+  document.getElementById('xp-next-level').textContent = state.level + 1;
+  const xpNeeded = xpForLevel(state.level);
+  const pct = Math.round((state.xp / xpNeeded) * 100);
+  document.getElementById('xp-label').textContent = `${state.xp} / ${xpNeeded} XP`;
+  document.getElementById('xp-pct').textContent = pct + '%';
+  document.getElementById('stat-xp-fill').style.width = pct + '%';
+
+  // Unlocks
+  const grid = document.getElementById('unlocks-grid');
+  grid.innerHTML = '';
+  UNLOCKABLES.forEach(u => {
+    const unlocked = state.level >= u.req;
+    const div = document.createElement('div');
+    div.className = 'unlock-item' + (unlocked ? ' unlocked' : '');
+    div.innerHTML = `
+      <div class="unlock-icon">${u.icon}</div>
+      <div class="unlock-info">
+        <div class="unlock-name">${u.name}</div>
+        <div class="unlock-req">${u.desc}</div>
+      </div>
+      <div class="unlock-badge ${unlocked ? '' : 'locked-badge'}">
+        ${unlocked ? '✓' : 'Lv '+u.req}
+      </div>`;
+    grid.appendChild(div);
+  });
+
+  if (results.length === 0) {
+    // Empty state
+    ['s-bestwpm','s-avgwpm','s-avgacc','s-tests','s-time','s-chars','s-streak','s-consistency']
+      .forEach(id => document.getElementById(id).textContent = '—');
+    renderKeyboardHeatmap();
+    document.getElementById('records-list').innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">No records yet. Complete a test to set your first record!</div></div>';
+    document.getElementById('recent-tests').innerHTML = '<div class="empty-state"><div class="empty-icon">⌨</div><div class="empty-text">No tests completed yet.</div></div>';
+    return;
+  }
+
+  const wpms = results.map(r=>r.wpm);
+  const accs = results.map(r=>r.acc);
+  const best = Math.max(...wpms);
+  const avg = Math.round(wpms.reduce((a,b)=>a+b,0)/wpms.length);
+  const avgAcc = Math.round(accs.reduce((a,b)=>a+b,0)/accs.length);
+  const totalMs = state.totalTime || results.reduce((a,r)=>a+r.time,0);
+  const totalMin = Math.floor(totalMs/60000);
+  const totalChars = state.totalChars || results.reduce((a,r)=>a+r.chars,0);
+
+  // Consistency (std dev of WPMs)
+  const mean = avg;
+  const sd = Math.sqrt(wpms.reduce((a,w)=>a+(w-mean)**2,0)/wpms.length);
+  const consistency = mean > 0 ? Math.max(0, Math.round(100 - (sd/mean)*100)) : 0;
+
+  document.getElementById('s-bestwpm').textContent = best;
+  document.getElementById('s-avgwpm').textContent = avg;
+  document.getElementById('s-avgacc').textContent = avgAcc + '%';
+  document.getElementById('s-tests').textContent = results.length;
+  document.getElementById('s-time').textContent = totalMin >= 60
+    ? `${Math.floor(totalMin/60)}h ${totalMin%60}m` : totalMin + 'm';
+  document.getElementById('s-chars').textContent = totalChars.toLocaleString();
+  document.getElementById('s-streak').textContent = state.bestStreak || 0;
+  document.getElementById('s-consistency').textContent = consistency + '%';
+
+  renderCharts(results);
+  renderKeyboardHeatmap();
+  renderRecords();
+  renderRecentTests(results);
+}
+
+function renderCharts(results) {
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+  const sub = '#646669';
+  const gridColor = 'rgba(255,255,255,0.05)';
+  const last = results.slice(-20);
+
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: gridColor }, ticks: { color: sub, font: { family: 'Roboto Mono', size: 10 } } },
+      y: { grid: { color: gridColor }, ticks: { color: sub, font: { family: 'Roboto Mono', size: 10 } } }
+    }
+  };
+
+  // WPM History
+  if (charts.wpm) charts.wpm.destroy();
+  charts.wpm = new Chart(document.getElementById('chart-wpm'), {
+    type: 'line',
+    data: {
+      labels: last.map((_,i) => '#'+(results.length-last.length+i+1)),
+      datasets: [{
+        data: last.map(r=>r.wpm),
+        borderColor: accent,
+        backgroundColor: accent + '22',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 3,
+        pointBackgroundColor: accent,
+        borderWidth: 2
+      }]
+    },
+    options: { ...chartDefaults }
+  });
+
+  // Accuracy History
+  if (charts.acc) charts.acc.destroy();
+  charts.acc = new Chart(document.getElementById('chart-acc'), {
+    type: 'line',
+    data: {
+      labels: last.map((_,i) => '#'+(results.length-last.length+i+1)),
+      datasets: [{
+        data: last.map(r=>r.acc),
+        borderColor: '#5b9cf6',
+        backgroundColor: '#5b9cf622',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 3,
+        pointBackgroundColor: '#5b9cf6',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: 0, max: 100 } }
+    }
+  });
+
+  // WPM Distribution
+  const wpms = results.map(r=>r.wpm);
+  const buckets = {};
+  wpms.forEach(w => { const b = Math.floor(w/10)*10; buckets[b] = (buckets[b]||0)+1; });
+  const bKeys = Object.keys(buckets).sort((a,b)=>+a-+b);
+
+  if (charts.dist) charts.dist.destroy();
+  charts.dist = new Chart(document.getElementById('chart-dist'), {
+    type: 'bar',
+    data: {
+      labels: bKeys.map(k => `${k}-${+k+9}`),
+      datasets: [{
+        data: bKeys.map(k => buckets[k]),
+        backgroundColor: accent + '99',
+        borderColor: accent,
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: { ...chartDefaults }
+  });
+
+  // XP per test
+  if (charts.xp) charts.xp.destroy();
+  charts.xp = new Chart(document.getElementById('chart-xp'), {
+    type: 'bar',
+    data: {
+      labels: last.map((_,i) => '#'+(results.length-last.length+i+1)),
+      datasets: [{
+        data: last.map(r=>r.xpGained||0),
+        backgroundColor: '#4caf8455',
+        borderColor: '#4caf84',
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: { ...chartDefaults }
+  });
+}
+
+function renderKeyboardHeatmap() {
+  const rows = [
+    ['q','w','e','r','t','y','u','i','o','p'],
+    ['a','s','d','f','g','h','j','k','l'],
+    ['z','x','c','v','b','n','m']
+  ];
+
+  const errors = state.charErrors || {};
+  const maxErr = Math.max(1, ...Object.values(errors));
+
+  const heatmap = document.getElementById('keyboard-heatmap');
+  heatmap.innerHTML = '';
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+
+  rows.forEach(row => {
+    const div = document.createElement('div');
+    div.className = 'heatmap-row';
+    row.forEach(key => {
+      const keyDiv = document.createElement('div');
+      keyDiv.className = 'heatmap-key';
+      keyDiv.textContent = key;
+      const errs = errors[key] || 0;
+      const intensity = errs / maxErr;
+      keyDiv.dataset.errors = errs;
+      if (intensity > 0) {
+        const r = parseInt(accent.slice(1,3),16);
+        const g = parseInt(accent.slice(3,5),16);
+        const b = parseInt(accent.slice(5,7),16);
+        keyDiv.style.background = `rgba(${r},${g},${b},${Math.min(0.85, intensity*0.85 + 0.1)})`;
+        keyDiv.style.color = intensity > 0.5 ? '#1a1a1a' : 'var(--text)';
+        keyDiv.style.borderColor = `rgba(${r},${g},${b},0.5)`;
+      }
+      div.appendChild(keyDiv);
+    });
+    heatmap.appendChild(div);
+  });
+
+  // spacebar
+  const spaceRow = document.createElement('div');
+  spaceRow.className = 'heatmap-row';
+  const spaceKey = document.createElement('div');
+  spaceKey.className = 'heatmap-key';
+  spaceKey.style.width = '200px';
+  spaceKey.textContent = 'space';
+  spaceKey.dataset.errors = errors[' '] || 0;
+  spaceRow.appendChild(spaceKey);
+  heatmap.appendChild(spaceRow);
+}
+
+function renderRecords() {
+  const list = document.getElementById('records-list');
+  const records = state.records || {};
+  const keys = Object.keys(records);
+  if (keys.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-text">No records yet. Complete tests to set personal bests!</div></div>';
+    return;
+  }
+  list.innerHTML = keys.sort().map(k => {
+    const r = records[k];
+    const d = new Date(r.date);
+    const modeStr = k.replace('time_', '').replace('words_', '') + (k.startsWith('time') ? 's' : ' words');
+    return `<div class="record-item">
+      <div>
+        <div class="record-mode">${modeStr}</div>
+        <div class="record-acc">${r.acc}% accuracy · ${r.tier || 'novice'}</div>
+      </div>
+      <div>
+        <div class="record-wpm">${r.wpm}</div>
+        <div class="record-date">${d.toLocaleDateString()}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderRecentTests(results) {
+  const el = document.getElementById('recent-tests');
+  const recent = results.slice(-10).reverse();
+  el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:0.78rem">
+    <thead>
+      <tr style="color:var(--sub);text-align:left">
+        <th style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.05)">#</th>
+        <th style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.05)">wpm</th>
+        <th style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.05)">raw</th>
+        <th style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.05)">acc</th>
+        <th style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.05)">consistency</th>
+        <th style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.05)">chars</th>
+        <th style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.05)">mode</th>
+        <th style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.05)">xp</th>
+        <th style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.05)">date</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${recent.map((r,i) => `
+        <tr style="transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+          <td style="padding:10px 12px;color:var(--sub)">${results.length - i}</td>
+          <td style="padding:10px 12px;color:var(--accent);font-weight:700">${r.wpm}</td>
+          <td style="padding:10px 12px;color:var(--sub)">${r.raw}</td>
+          <td style="padding:10px 12px">${r.acc}%</td>
+          <td style="padding:10px 12px">${r.consistency || '—'}%</td>
+          <td style="padding:10px 12px;color:var(--sub)">${r.chars}</td>
+          <td style="padding:10px 12px;color:var(--sub)">${(r.mode||'').replace('_',' ')}</td>
+          <td style="padding:10px 12px;color:#4caf84">+${r.xpGained||0}</td>
+          <td style="padding:10px 12px;color:var(--sub)">${new Date(r.date).toLocaleDateString()}</td>
+        </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  NOTIFICATIONS
+// ═══════════════════════════════════════════════════════
+function showNotif(title, msg) {
+  const container = document.getElementById('notif');
+  const item = document.createElement('div');
+  item.className = 'notif-item';
+  item.innerHTML = `<div class="notif-title">${title}</div><div>${msg}</div>`;
+  container.appendChild(item);
+  setTimeout(() => item.remove(), 3200);
+}
+
+// ═══════════════════════════════════════════════════════
+//  MISC
+// ═══════════════════════════════════════════════════════
+function updateNavLevel() {
+  document.getElementById('nav-level').textContent = state.level;
+  const pct = Math.round((state.xp / xpForLevel(state.level)) * 100);
+  document.getElementById('nav-xp-fill').style.width = pct + '%';
+}
+
+function updateTierDisplay() {
+  const tier = getWordTierForLevel(state.level);
+  const tierNames = { novice: 'novice', apprentice: 'apprentice', journeyman: 'journeyman', expert: 'expert' };
+  document.getElementById('tier-name').textContent = tierNames[tier];
+}
+
+function clearStats() {
+  if (!confirm('Reset all stats and progress? This cannot be undone.')) return;
+  state = {
+    level: 1, xp: 0, results: [], charErrors: {}, records: {},
+    currentStreak: 0, bestStreak: 0, totalTime: 0, totalChars: 0,
+    specialModes: { punctuation: false, numbers: false, quotes: false }
+  };
+  saveState();
+  applyTheme(1);
+  updateNavLevel();
+  renderStats();
+  showNotif('🗑 Stats cleared', 'Starting fresh!');
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+loadState();
+applyTheme(state.level);
+updateNavLevel();
+updateUnlockButtons();
+restartTest();
+</script>
+</body>
+</html>
