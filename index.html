@@ -251,16 +251,24 @@
   .words {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px 16px;
     font-size: 1.5rem;
-    line-height: 1;
+    line-height: 1.6;
     transition: transform 0.2s ease;
-    padding: 2px;
+    padding: 8px 4px;
+    justify-content: flex-start;
   }
 
   .word {
     display: inline-flex;
     position: relative;
+    margin: 2px 0;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background 0.1s;
+  }
+  .word:hover {
+    background: rgba(255,255,255,0.03);
   }
 
   .char {
@@ -893,49 +901,51 @@
   /* ── AUTH SECTION ── */
   .auth-section {
     max-width: 1100px;
-    margin: 20px auto;
+    margin: 12px auto;
     padding: 0 40px;
     width: 100%;
   }
   .auth-form {
     background: var(--bg2);
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px;
-    padding: 24px 28px;
-    text-align: center;
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
   }
   .auth-header {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-size: 1rem;
+    gap: 8px;
+    font-size: 0.85rem;
     color: var(--text);
-    margin-bottom: 8px;
+    white-space: nowrap;
   }
   .auth-header strong { color: var(--accent); }
-  .auth-icon { font-size: 1.2rem; }
+  .auth-icon { font-size: 1rem; }
   .auth-sub {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--sub);
-    margin-bottom: 16px;
+    white-space: nowrap;
   }
   .auth-inputs {
     display: flex;
-    gap: 10px;
-    justify-content: center;
-    flex-wrap: wrap;
+    gap: 8px;
     align-items: center;
+    flex: 1;
+    justify-content: flex-end;
   }
   .auth-inputs input {
-    padding: 10px 14px;
+    padding: 8px 12px;
     border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 8px;
+    border-radius: 6px;
     background: var(--bg3);
     color: var(--text);
     font-family: 'Roboto Mono', monospace;
-    font-size: 0.85rem;
-    min-width: 180px;
+    font-size: 0.8rem;
+    width: 140px;
   }
   .auth-inputs input::placeholder { color: var(--sub); }
   .auth-inputs input:focus {
@@ -943,14 +953,15 @@
     outline: none;
   }
   .btn-auth, .btn-guest, .btn-signout {
-    padding: 10px 18px;
+    padding: 8px 14px;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     font-family: 'Roboto Mono', monospace;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     cursor: pointer;
     transition: all var(--transition);
     font-weight: 600;
+    white-space: nowrap;
   }
   .btn-auth {
     background: var(--accent);
@@ -967,11 +978,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 16px;
+    gap: 12px;
     background: var(--bg2);
     border: 1px solid rgba(0,255,136,0.2);
-    border-radius: 14px;
-    padding: 16px 24px;
+    border-radius: 10px;
+    padding: 10px 16px;
+    max-width: fit-content;
+    margin: 0 auto;
   }
   .user-email {
     color: var(--accent);
@@ -1005,27 +1018,28 @@
   /* ── REWARDS SECTION ── */
   .rewards-section {
     max-width: 1100px;
-    margin: 0 auto 20px;
+    margin: 0 auto 12px;
     padding: 0 40px;
     width: 100%;
   }
   .reward-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 1rem;
+    gap: 8px;
+    font-size: 0.85rem;
     font-weight: 600;
     color: #ffd700;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }
   .reward-content {
     background: var(--bg2);
     border: 1px solid rgba(255,215,0,0.2);
-    border-radius: 12px;
-    padding: 20px;
+    border-radius: 8px;
+    padding: 12px 16px;
     text-align: center;
+    font-size: 0.85rem;
   }
-  .reward-content p { color: var(--sub); font-size: 0.9rem; }
+  .reward-content p { color: var(--sub); font-size: 0.85rem; margin: 0; }
   .reward-active {
     background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05));
     border-color: rgba(255,215,0,0.4);
@@ -1047,11 +1061,11 @@
     display: inline-block;
   }
   .code-history {
-    margin-top: 20px;
+    margin-top: 12px;
     background: var(--bg2);
     border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 12px;
-    padding: 20px;
+    border-radius: 8px;
+    padding: 12px 16px;
   }
   .code-history h4 {
     font-size: 0.75rem;
@@ -1095,12 +1109,12 @@
     color: #00ccff;
   }
   .auto-redeem-info {
-    margin-top: 16px;
-    padding: 14px 18px;
+    margin-top: 12px;
+    padding: 10px 14px;
     background: rgba(0,255,136,0.1);
     border: 1px solid rgba(0,255,136,0.25);
-    border-radius: 10px;
-    font-size: 0.85rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
     color: #4caf84;
   }
   .gem-count {
@@ -1185,9 +1199,9 @@
   <div id="authForm" class="auth-form">
     <div class="auth-header">
       <span class="auth-icon">🔗</span>
-      <span>Link to CCG Code for <strong>10 Gems</strong> every 10 levels!</span>
+      <span>Link to FallingStar TCG for <strong>10 Gems</strong> every 10 levels!</span>
     </div>
-    <p class="auth-sub">Use the same email/password as your CCG Code account</p>
+    <p class="auth-sub">Use the same email/password as your FallingStar account</p>
     <div class="auth-inputs">
       <input type="email" id="emailInput" placeholder="Email">
       <input type="password" id="passwordInput" placeholder="Password (6+ chars)">
@@ -1206,7 +1220,7 @@
 <div class="rewards-section" id="rewardsSection" style="display: none;">
   <div class="reward-header">
     <span>🎁</span>
-    <span>CCG Code Rewards</span>
+    <span>FallingStar TCG Rewards</span>
   </div>
   <div id="rewardContent" class="reward-content">
     <p>Reach every 10th level to earn 10 Gems!</p>
@@ -1216,7 +1230,7 @@
     <div class="code-list" id="codeList"></div>
   </div>
   <div class="auto-redeem-info" id="autoRedeemInfo" style="display: none;">
-    ✅ <strong>Auto-Redeem Active!</strong> Gems automatically added to CCG Code with same login.
+    ✅ <strong>Auto-Redeem Active!</strong> Gems automatically added to FallingStar TCG with same login.
   </div>
 </div>
 
@@ -1485,12 +1499,13 @@ const QUOTES = [
 ];
 
 // ═══════════════════════════════════════════════════════
-//  FIREBASE CONFIG (Same as CCG Code)
+//  FIREBASE CONFIG (Same as FallingStar TCG)
 // ═══════════════════════════════════════════════════════
 const firebaseConfig = {
   apiKey: "AIzaSyAYk_xbV7ZDNAOZuKxc_OF3I14MO-ENsB4",
-  authDomain: "ccg-game-cd803.firebaseapp.com",
-  projectId: "ccg-game-cd803",
+  authDomain: "fallingstar-tcg.firebaseapp.com",
+  projectId: "fallingstar-tcg",
+  storageBucket: "fallingstar-tcg.appspot.com",
   storageBucket: "ccg-game-cd803.firebasestorage.app",
   messagingSenderId: "844503779699",
   appId: "1:844503779699:web:e6ee8ef8d5e76a83855d06",
@@ -1678,7 +1693,7 @@ function generateUniqueCode() {
 
 async function autoRedeemCode(code, level) {
   try {
-    // Find CCG Code user with same email
+    // Find FallingStar TCG user with same email
     const usersQuery = await db.collection('users')
       .where('email', '==', currentUser.email)
       .limit(1)
@@ -1689,7 +1704,7 @@ async function autoRedeemCode(code, level) {
       const ccgUserId = ccgUser.id;
       const ccgData = ccgUser.data();
 
-      // Add gems to CCG Code user
+      // Add gems to FallingStar TCG user
       const currentGems = ccgData.gems || 0;
       await db.collection('users').doc(ccgUserId).update({
         gems: Math.min(currentGems + 10, 999999)
@@ -1704,7 +1719,7 @@ async function autoRedeemCode(code, level) {
         autoRedeemed: true
       });
 
-      showNotif('💎 Auto-Redeemed!', `10 gems added to CCG Code`);
+      showNotif('💎 Auto-Redeemed!', `10 gems added to FallingStarTCG`);
     }
   } catch (error) {
     console.error('Auto-redeem error:', error);
@@ -1731,7 +1746,7 @@ function updateRewardDisplay() {
     rewardContent.innerHTML = `
       <div style="padding:16px;">
         <strong style="color:#4caf84;">✓ Level ${state.level} Reward Claimed!</strong>
-        <p style="margin-top:8px;color:var(--sub);">10 Gems added to CCG Code</p>
+        <p style="margin-top:8px;color:var(--sub);">10 Gems added to FallingStar TCG</p>
       </div>
     `;
   } else {
